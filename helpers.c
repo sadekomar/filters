@@ -72,58 +72,51 @@ void blur(int height, int width, RGBTRIPLE image[height][width])
 void edges(int height, int width, RGBTRIPLE image[height][width])
 {
     int Gx[3][3] = {{-1,0,1}, {-2,0,2}, {-1,0,1}};
-    int Gy[3][3] = {{-1,-2-1}, {0,0,0}, {1,2,1}};
-    
+    int Gy[3][3] = {{-1,-2,-1}, {0,0,0}, {1,2,1}};
+
     for (int i = 0; i < height; i++)
     {
         for (int j = 0; j < width; j++)
         {
-            int sumBlueGx = 0, sumGreenGx = 0, sumRedGx = 0, sumBlueGy = 0, sumGreenGy = 0, sumRedGy = 0;
-            int rowCounter = 0, colCounter = 0;
-
-            // Selecting the nine pixels and taking a weighted sum.
+            int kRow = 0, kCol = 0;
+            int sumGreenGx, sumRedGx, sumBlueGx, sumGreenGy, sumRedGy, sumBlueGy;
+            sumGreenGx = sumRedGx = sumBlueGx = sumGreenGy = sumRedGy = sumBlueGy = 0;
+            
             for (int row = -1; row < 2; row++)
             {
                 for (int col = -1; col < 2; col++)
                 {
-                    if ((((i + row) < 0) | ((j + col) < 0) | ((i + row) == height) | ((j + col) == width)) == 0)
-                    {   
-                        // Convolution & Sum of Gx
-                        int blueGx = image[i + row][j + col].rgbtBlue * Gx[rowCounter][colCounter];
-                        int greenGx = image[i + row][j + col].rgbtGreen * Gx[rowCounter][colCounter];
-                        int redGx = image[i + row][j + col].rgbtRed * Gx[rowCounter][colCounter];
+                    int greenGx = image[i + row][j + col].rgbtGreen * Gx[kRow][kCol];
+                    int redGx = image[i + row][j + col].rgbtRed * Gx[kRow][kCol];
+                    int blueGx = image[i + row][j + col].rgbtBlue * Gx[kRow][kCol];
 
-                        sumBlueGx += blueGx;
-                        sumGreenGx += greenGx;
-                        sumRedGx += redGx;
+                    int greenGy = image[i + row][j + col].rgbtGreen * Gy[kRow][kCol];
+                    int redGy = image[i + row][j + col].rgbtRed * Gy[kRow][kCol];
+                    int blueGy = image[i + row][j + col].rgbtBlue * Gy[kRow][kCol];
 
-                        // Convolution & Sum of Gy
-                        int blueGy = image[i + row][j + col].rgbtBlue * Gy[rowCounter][colCounter];
-                        int greenGy = image[i + row][j + col].rgbtGreen * Gy[rowCounter][colCounter];
-                        int redGy = image[i + row][j + col].rgbtRed * Gy[rowCounter][colCounter];
+                    sumGreenGx += greenGx;
+                    sumRedGx += redGx;
+                    sumBlueGx += blueGx;
 
-                        sumBlueGy += blueGy;
-                        sumGreenGy += greenGy;
-                        sumRedGy += redGy;
-                    }
-                    colCounter++;
+                    sumGreenGy += greenGy;
+                    sumRedGy += redGy;
+                    sumBlueGy += blueGy;
+
+                    kCol++;
                 }
-                rowCounter++;
+                kCol = 0;
+                kRow++;
             }
 
-            double sumBlue = sqrt( pow((double)sumBlueGx, 2) + pow((double)sumBlueGy, 2) );
-            double sumGreen = sqrt( pow((double)sumGreenGx, 2) + pow((double)sumGreenGy, 2) );
-            double sumRed = sqrt( pow((double)sumRedGx, 2) + pow((double)sumRedGy, 2) );
-
-            int sumIntBlue = (int)sumBlue % 256;
-            int sumIntGreen = (int)sumGreen % 256;
-            int sumIntRed = (int)sumRed % 256;
-
-            image[i][j].rgbtBlue = sumBlue;
-            image[i][j].rgbtGreen = sumGreen;
-            image[i][j].rgbtRed = sumRed;
+            int newGreen = sqrt(pow(sumGreenGx, 2) + pow(sumGreenGy, 2));
+            int newRed = sqrt(pow(sumRedGx, 2) + pow(sumRedGy, 2));
+            int newBlue = sqrt(pow(sumBlueGx, 2) + pow(sumBlueGy, 2));
             
+            image[i][j].rgbtGreen = newGreen > 255? 255: newGreen;
+            image[i][j].rgbtRed = newRed > 255? 255: newRed;
+            image[i][j].rgbtBlue = newBlue > 255? 255: newBlue;
         }
     }
     return;
 }
+// hey this is actually working
